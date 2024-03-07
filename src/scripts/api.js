@@ -6,101 +6,75 @@ const config = {
   },
 };
 
+const handleResponse = (res) => {
+  return res.ok
+    ? res.json()
+    : Promise.reject(`Что-то пошло не так: ${res.status}`);
+};
+
 const getInitialCards = async () => {
-  const res = await fetch(`${config.baseUrl}/cards`, {
+  return fetch(`${config.baseUrl}/cards`, {
     headers: config.headers,
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const getUserInfo = async () => {
-  const res = await fetch(`${config.baseUrl}/users/me`, {
+  return fetch(`${config.baseUrl}/users/me`, {
     headers: config.headers,
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const updateUserInformation = async (userName, userAbout) => {
-  const res = await fetch(`${config.baseUrl}/users/me`, {
+  return fetch(`${config.baseUrl}/users/me`, {
     method: "PATCH",
     headers: config.headers,
     body: JSON.stringify({
       name: userName,
       about: userAbout,
     }),
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const updateNewCard = async (cardName, cardLink) => {
-  const res = await fetch(`${config.baseUrl}/cards`, {
+  return fetch(`${config.baseUrl}/cards`, {
     method: "POST",
     headers: config.headers,
     body: JSON.stringify({
       name: cardName,
       link: cardLink,
     }),
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const deleteCard = async (cardId) => {
-  const res = await fetch(`${config.baseUrl}/cards/${cardId}`, {
+  return fetch(`${config.baseUrl}/cards/${cardId}`, {
     method: "DELETE",
     headers: config.headers,
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const getLikeCard = async (cardId) => {
-  const res = await fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: "PUT",
     headers: config.headers,
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const deleteLikeCard = async (cardId) => {
-  const res = await fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: "DELETE",
     headers: config.headers,
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 const updateNewAvatar = async (link) => {
-  const res = await fetch(`${config.baseUrl}/users/me/avatar`, {
+  return fetch(`${config.baseUrl}/users/me/avatar`, {
     method: "PATCH",
     headers: config.headers,
     body: JSON.stringify({
       avatar: link,
     }),
-  });
-  if (res.ok) {
-    return res.json();
-  }
-  return await Promise.reject(`Что-то пошло не так: ${res.status}`);
+  }).then((res) => handleResponse(res));
 };
 
 export {

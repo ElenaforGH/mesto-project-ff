@@ -8,11 +8,7 @@ import {
   updateNewAvatar,
 } from "./api.js";
 import { createCard, removeCard, getOrRemovelike } from "./card.js";
-import {
-  enableValidation,
-  clearValidation,
-  clearInputs,
-} from "./validation.js";
+import { enableValidation, clearValidation } from "./validation.js";
 
 const placesList = document.querySelector(".places__list");
 const profileAddButton = document.querySelector(".profile__add-button");
@@ -44,8 +40,6 @@ const profileDescription = document.querySelector(".profile__description");
 const popupTypeEditForm = document.forms["edit-profile"];
 const popypTypeAvatarForm = document.forms["avatar"];
 const popupTypeNewPlaceForm = document.forms["new-place"];
-const popupTypeEditFormName = popupTypeEditForm.elements.name;
-const popupTypeEditFormDescription = popupTypeEditForm.elements.description;
 const popups = document.querySelectorAll(".popup");
 const settingsObject = {
   formSelector: ".popup__form",
@@ -64,24 +58,10 @@ popups.forEach((popupType) => {
   });
 });
 
-function checkInputs(popupType) {
-  const inputs = popupType.querySelectorAll(".popup__input");
-  const popupTypeButton = popupType.querySelector(".popup__button");
-  inputs.forEach((input) => {
-    if (input.value == "") {
-      popupTypeButton.disabled = true;
-      popupTypeButton.classList.add("popup__button_disabled");
-    } else {
-      popupTypeButton.disabled = false;
-      popupTypeButton.classList.remove("popup__button_disabled");
-    }
-  });
-}
-
 function renderLoading(isLoading, popupType) {
-  if (isLoading) {
-    popupType.querySelector(".popup__button").textContent = "Сохранение...";
-  }
+  popupType.querySelector(".popup__button").textContent = isLoading
+    ? "Сохранение..."
+    : "Сохранить";
 }
 
 function openPopupTypeImage(event) {
@@ -94,24 +74,22 @@ function openPopupTypeImage(event) {
 }
 
 profileEditButton.addEventListener("click", function () {
+  nameInput.value = profileTitle.textContent;
+  jobInput.value = profileDescription.textContent;
   clearValidation(popupTypeEditForm, settingsObject);
   openModal(popupTypeEdit);
-  popupTypeEditFormName.value = profileTitle.textContent;
-  popupTypeEditFormDescription.value = profileDescription.textContent;
 });
 
 profileEditIcon.addEventListener("click", function () {
+  popypTypeAvatarForm.reset();
   clearValidation(popypTypeAvatarForm, settingsObject);
-  clearInputs(popypTypeAvatarForm, settingsObject);
   openModal(popupTypeAvatar);
-  checkInputs(popupTypeAvatar);
 });
 
 profileAddButton.addEventListener("click", function () {
+  popupTypeNewPlaceForm.reset();
   clearValidation(popupTypeNewPlaceForm, settingsObject);
-  clearInputs(popupTypeNewPlaceForm, settingsObject);
   openModal(popupTypeNewCard);
-  checkInputs(popupTypeNewCard);
 });
 
 function handleFormSubmitEditProfile(evt) {
@@ -119,15 +97,11 @@ function handleFormSubmitEditProfile(evt) {
   renderLoading(true, popupTypeEdit);
   updateUserInformation(nameInput.value, jobInput.value)
     .then((user) => {
-      nameInput.value = user.name;
-      jobInput.value = user.about;
+      profileTitle.textContent = user.name;
+      profileDescription.textContent = user.about;
     })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    });
+    .catch((err) => console.log(err))
+    .finally(() => renderLoading(false, popupTypeEdit));
   closeModal(popupTypeEdit);
 }
 editFormElement.addEventListener("submit", function (evt) {
@@ -141,12 +115,8 @@ function handleFormSubmitAvatarForm(evt) {
     .then((user) => {
       profileImage.style.backgroundImage = `url(${user.avatar})`;
     })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    });
+    .catch((err) => console.log(err))
+    .finally(() => renderLoading(false, popupTypeAvatar));
   closeModal(popupTypeAvatar);
 }
 
@@ -157,54 +127,39 @@ avatarFormElement.addEventListener("submit", function (evt) {
 function addCard(evt) {
   evt.preventDefault();
   renderLoading(true, popupTypeNewCard);
-  const newCard = {
-    name: placeName.value,
-    link: placeUrl.value,
-  };
-  updateNewCard(newCard.name, newCard.link)
+  updateNewCard(placeName.value, placeUrl.value)
     .then((card) => {
       placesList.prepend(
         createCard(
-          {
-            name: card.name,
-            link: card.link,
-            likes: card.likes,
-            _id: card._id,
-            ownerId: card.owner._id,
-          },
+          card,
+          userId,
           removeCard,
           getOrRemovelike,
           openPopupTypeImage
         )
       );
     })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      renderLoading(false);
-    });
+    .catch((err) => console.log(err))
+    .finally(() => renderLoading(false, popupTypeNewCard));
   placeName.value = "";
   placeUrl.value = "";
   closeModal(popupTypeNewCard);
 }
 newCardFormElement.addEventListener("submit", addCard);
 
+let userId;
+
 Promise.all([getUserInfo(), getInitialCards()])
   .then(([user, cards]) => {
+    userId = user._id;
     profileTitle.textContent = user.name;
     profileDescription.textContent = user.about;
     profileImage.style.backgroundImage = `url(${user.avatar})`;
     cards.forEach((card) => {
       placesList.prepend(
         createCard(
-          {
-            name: card.name,
-            link: card.link,
-            likes: card.likes,
-            _id: card._id,
-            ownerId: card.owner._id,
-          },
+          card,
+          userId,
           removeCard,
           getOrRemovelike,
           openPopupTypeImage
@@ -212,8 +167,6 @@ Promise.all([getUserInfo(), getInitialCards()])
       );
     });
   })
-  .catch((err) => {
-    console.log(err);
-  });
+  .catch((err) => console.log(err));
 
 enableValidation(settingsObject);
